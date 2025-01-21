@@ -14,11 +14,11 @@ import androidx.navigation.fragment.findNavController
 import com.example.todo.R
 import com.example.todo.data.TodoItem
 import com.example.todo.data.TodoItemsRepository
+import com.example.todo.data.Priority
 import java.util.Calendar
 import java.util.UUID
 
 class TodoEditFragment : Fragment() {
-    private lateinit var repository: TodoItemsRepository
     private var todoItem: TodoItem? = null
     private var selectedDeadline: Long? = null
 
@@ -33,10 +33,8 @@ class TodoEditFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        repository = TodoItemsRepository()
-
         arguments?.getString("todoId")?.let { id ->
-            todoItem = repository.getAllItems().find { it.id == id }
+            todoItem = TodoItemsRepository.getAllItems().find { it.id == id }
         }
 
         selectedDeadline = savedInstanceState?.getLong("selected_deadline")
@@ -55,16 +53,16 @@ class TodoEditFragment : Fragment() {
     private fun setupViews() {
         view?.findViewById<EditText>(R.id.todoText)?.setText(todoItem?.text)
         
-        // Настраиваем спиннер с приоритетами
-        val priorities = TodoItem.Priority.values()
+        val priorities = Priority.values()
         val adapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
-            priorities.map { TodoItem.Priority.toString(it) }
+            priorities.map { it.getDisplayName() }
         )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        
         view?.findViewById<Spinner>(R.id.prioritySpinner)?.adapter = adapter
         
-        // Устанавливаем текущий приоритет если редактируем
         todoItem?.priority?.let { priority ->
             val position = priorities.indexOf(priority)
             view?.findViewById<Spinner>(R.id.prioritySpinner)?.setSelection(position)
@@ -72,25 +70,21 @@ class TodoEditFragment : Fragment() {
     }
 
     private fun setupButtons() {
-        // Настраиваем кнопку дедлайна
         view?.findViewById<Button>(R.id.deadlineButton)?.setOnClickListener {
             showDatePicker()
         }
 
-        // Кнопка сохранения
         view?.findViewById<Button>(R.id.saveButton)?.setOnClickListener {
             saveTodoItem()
         }
 
-        // Кнопка удаления
         view?.findViewById<Button>(R.id.deleteButton)?.setOnClickListener {
             todoItem?.let { 
-                repository.deleteItem(it.id)
+                TodoItemsRepository.deleteItem(it.id)
             }
             findNavController().navigateUp()
         }
 
-        // Кнопка отмены
         view?.findViewById<Button>(R.id.cancelButton)?.setOnClickListener {
             findNavController().navigateUp()
         }
@@ -114,7 +108,7 @@ class TodoEditFragment : Fragment() {
         val text = view?.findViewById<EditText>(R.id.todoText)?.text.toString()
         val priorityString = view?.findViewById<Spinner>(R.id.prioritySpinner)
             ?.selectedItem.toString()
-        val priority = TodoItem.Priority.fromString(priorityString)
+        val priority = Priority.fromDisplayName(priorityString)
 
         val newTodoItem = TodoItem(
             id = todoItem?.id ?: UUID.randomUUID().toString(),
@@ -122,13 +116,14 @@ class TodoEditFragment : Fragment() {
             priority = priority,
             deadline = selectedDeadline,
             isCompleted = todoItem?.isCompleted ?: false,
-            modifiedAt = System.currentTimeMillis()
+            createdAt = todoItem?.createdAt ?: System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis()
         )
 
         if (todoItem == null) {
-            repository.addItem(newTodoItem)
+            TodoItemsRepository.addItem(newTodoItem)
         } else {
-            repository.updateItem(newTodoItem)
+            TodoItemsRepository.updateItem(newTodoItem)
         }
 
         findNavController().navigateUp()

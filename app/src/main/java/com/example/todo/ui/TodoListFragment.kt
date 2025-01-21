@@ -16,7 +16,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class TodoListFragment : Fragment() {
     private lateinit var todoAdapter: TodoAdapter
-    private lateinit var repository: TodoItemsRepository
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,14 +28,12 @@ class TodoListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        repository = TodoItemsRepository()
         setupRecyclerView()
         setupFab()
     }
 
     private fun setupRecyclerView() {
         todoAdapter = TodoAdapter { todoItem ->
-            // Открываем экран редактирования при клике на элемент
             navigateToEdit(todoItem)
         }
 
@@ -55,12 +52,16 @@ class TodoListFragment : Fragment() {
     }
 
     private fun updateList() {
-        todoAdapter.submitList(repository.getAllItems())
+        todoAdapter.submitList(TodoItemsRepository.getAllItems())
     }
 
     private fun navigateToEdit(todoItem: TodoItem?) {
-        findNavController().navigate(
-            TodoListFragmentDirections.actionListToEdit(todoItem?.id)
-        )
+        val action = TodoListFragmentDirections.actionListToEdit(todoItem?.id)
+        findNavController().navigate(action)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateList()
     }
 } 

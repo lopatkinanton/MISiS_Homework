@@ -7,12 +7,7 @@ data class TodoItem(
     val text: String,
     val priority: Priority,
     val deadline: Long?,
-    var isDone: Boolean,
+    var isCompleted: Boolean,
     val createdAt: Long,
     var updatedAt: Long?
 )
-
-
-enum class Priority {
-    LOW, NORMAL, HIGH
-}

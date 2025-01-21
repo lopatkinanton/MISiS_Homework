@@ -15,20 +15,20 @@ object TodoItemsRepository {
         )
     }
 
-    fun getTodoList(): List<TodoItem> = todoList
+    fun getAllItems(): List<TodoItem> = todoList
 
-    fun addTodoItem(item: TodoItem) {
+    fun addItem(item: TodoItem) {
         todoList.add(item)
     }
 
-    fun updateTodoItem(item: TodoItem) {
+    fun updateItem(item: TodoItem) {
         val index = todoList.indexOfFirst { it.id == item.id }
         if (index != -1) {
             todoList[index] = item
         }
     }
 
-    fun deleteTodoItem(id: String) {
+    fun deleteItem(id: String) {
         todoList.removeAll { it.id == id }
     }
 }
